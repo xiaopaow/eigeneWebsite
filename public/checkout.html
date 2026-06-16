@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Secure checkout | PatchReach</title><meta name="robots" content="noindex">
+  <link rel="icon" href="/assets/favicon.svg"><link rel="stylesheet" href="/checkout.css">
+</head>
+<body>
+  <header class="checkout-header"><div class="checkout-wrap nav"><a class="brand" href="/"><span class="brand-mark">PR</span><span>PATCHREACH</span></a><a class="back-link" href="/#compare">← Back to catalog</a></div></header>
+  <main>
+    <section class="checkout-hero"><div class="checkout-wrap"><p class="eyebrow">Secure product payment</p><h1>Checkout built around exact fit.</h1><p>Pay the fixed product total now. Shipping is not included and will be quoted after we confirm destination and fit.</p></div></section>
+    <section class="checkout-wrap checkout-grid">
+      <form class="checkout-card" data-checkout-form>
+        <div class="card-head"><span>01</span><div><h2>Contact and delivery</h2><p>Used for order confirmation and the separate shipping quote.</p></div></div>
+        <div class="form-grid">
+          <label>Name<input name="name" required maxlength="120" autocomplete="name"></label>
+          <label>Email<input name="email" type="email" required maxlength="254" autocomplete="email"></label>
+          <label>Phone<input name="phone" required maxlength="60" autocomplete="tel"></label>
+          <label>Country<input name="country" required maxlength="120" autocomplete="country-name"></label>
+          <label class="wide">Address<input name="address1" required maxlength="180" autocomplete="address-line1"></label>
+          <label class="wide">Apartment, suite, etc.<input name="address2" maxlength="180" autocomplete="address-line2"></label>
+          <label>City<input name="city" required maxlength="120" autocomplete="address-level2"></label>
+          <label>State / region<input name="region" maxlength="120" autocomplete="address-level1"></label>
+          <label>Postal code<input name="postal_code" required maxlength="40" autocomplete="postal-code"></label>
+          <label class="honeypot">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
+      </form>
+      <aside class="checkout-card order-card">
+        <div class="card-head"><span>02</span><div><h2>Order summary</h2><p>Prices are verified again by the server.</p></div></div>
+        <div class="checkout-items" data-checkout-items><p class="muted">Loading your selected products...</p></div>
+        <div class="summary-line"><span>Product subtotal</span><b data-checkout-subtotal>$0.00</b></div>
+        <div class="shipping-notice"><b>Shipping not included</b><span>We will confirm the shipping charge separately before dispatch.</span></div>
+        <div class="summary-total"><span>Total due now</span><b data-checkout-total>$0.00 USD</b></div>
+        <div class="payment-status" data-payment-status role="status"></div>
+        <div class="paypal-wrap" data-paypal-buttons></div>
+        <p class="payment-footnote">Payment is processed by PayPal. PatchReach does not store your card or PayPal password.</p>
+      </aside>
+    </section>
+  </main>
+  <script src="/checkout.js" defer></script>
+</body>
+</html>

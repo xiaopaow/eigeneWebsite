@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PatchReach Admin</title><meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="/assets/favicon.svg"><link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+  <header><a class="brand" href="/"><span>PR</span> PATCHREACH</a><div class="admin-actions"><button data-tab="products" class="active">Products</button><button data-tab="inquiries">Inquiries</button><button data-tab="orders">Orders</button><button data-logout hidden>Sign out</button></div></header>
+  <main>
+    <section class="login-card" data-login-view>
+      <p class="eyebrow">Private dashboard</p><h1>Manage the catalog</h1>
+      <p>Sign in with the administrator account configured on the server.</p>
+      <form data-login-form><label>Email<input type="email" name="email" required autocomplete="username"></label><label>Password<input type="password" name="password" required autocomplete="current-password"></label><button type="submit">Sign in</button><p data-login-status role="status"></p></form>
+    </section>
+
+    <section class="dashboard" data-dashboard hidden>
+      <div class="page-head"><div><p class="eyebrow">Catalog operations</p><h1>Products</h1><p>Publish, edit, archive, and upload product images without changing site code.</p></div><button class="primary" data-new-product>New product</button></div>
+      <div class="product-workspace" data-products-panel>
+        <div class="table-card"><div class="table-toolbar"><input type="search" data-admin-search placeholder="Search SKU or product"><span><b data-admin-count>0</b> products</span></div><div class="admin-list" data-admin-products></div></div>
+        <form class="editor" data-product-form>
+          <div class="editor-head"><div><small data-editor-mode>New product</small><h2 data-editor-title>Add product</h2></div><button type="button" class="subtle" data-close-editor>Clear</button></div>
+          <input type="hidden" name="id">
+          <div class="form-grid">
+            <label>SKU<input name="sku" required maxlength="64" placeholder="PR-W04"></label>
+            <label>Status<select name="status"><option value="published">Published</option><option value="draft">Draft</option><option value="archived">Archived</option></select></label>
+            <label class="wide">Product name<input name="name" required maxlength="160"></label>
+            <label>Collection<select name="collection"><option>Woodline</option><option>SteelSeries</option><option>Hybrid</option><option>Accessories</option></select></label>
+            <label>Material<input name="material" required placeholder="Wood"></label>
+            <label>Tier count<input name="tier_count" type="number" min="1" max="12" value="1" required></label>
+            <label>Tier label<input name="tier_label" placeholder="2-tier"></label>
+            <label>Footprint<select name="footprint"><option>Compact</option><option selected>Medium</option><option>Large</option></select></label>
+            <label>Price from (USD)<input name="price_from" type="number" min="0" step="0.01"></label>
+            <label class="checkout-toggle"><input name="direct_checkout" type="checkbox"> <span><b>Direct checkout</b><small>Allow fixed-price PayPal payment</small></span></label>
+            <label>Sort order<input name="sort_order" type="number" value="0"></label>
+            <label>Tag<input name="tag" placeholder="Universal medium"></label>
+            <label class="wide">Compatible gear<input name="device" placeholder="Digitakt / Digitone / SP-404"></label>
+            <label class="wide">Description<textarea name="description"></textarea></label>
+            <label class="wide">Fit notes<textarea name="fit"></textarea></label>
+            <label class="wide">Angle / adjustment<input name="angle"></label>
+            <label>Width cm<input name="width_cm" type="number" step="0.1"></label><label>Depth cm<input name="depth_cm" type="number" step="0.1"></label>
+            <label>Height cm<input name="height_cm" type="number" step="0.1"></label><label>Cable gap cm<input name="cable_gap_cm" type="number" step="0.1"></label>
+            <label>Load kg<input name="load_kg" type="number" step="0.1"></label><label>Image alt text<input name="image_alt"></label>
+            <label class="wide">Image URL<input name="image_url" placeholder="/uploads/... or /assets/product-wood.svg"></label>
+            <label class="wide upload">Upload image<input name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif"><button type="button" data-upload>Upload selected image</button></label>
+          </div>
+          <div class="editor-actions"><button type="button" class="danger" data-delete-product hidden>Delete</button><span data-product-status role="status"></span><button type="submit" class="primary">Save product</button></div>
+        </form>
+      </div>
+
+      <div data-inquiries-panel hidden>
+        <div class="table-card"><div class="table-toolbar"><h2>Customer inquiries</h2><span>Stored in PostgreSQL</span></div><div class="inquiry-list" data-inquiries></div></div>
+      </div>
+      <div data-orders-panel hidden>
+        <div class="table-card"><div class="table-toolbar"><h2>Paid and pending orders</h2><span>PayPal status is server verified</span></div><div class="order-list" data-orders></div></div>
+      </div>
+    </section>
+  </main>
+  <script src="/admin.js" defer></script>
+</body>
+</html>

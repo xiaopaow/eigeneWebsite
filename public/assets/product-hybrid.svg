@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <rect width="800" height="520" fill="#edf1f4"/><path d="M100 430h600" stroke="#cbd5df" stroke-width="3"/>
+  <path d="M135 360h530v42H135z" fill="#a96d40" stroke="#56351f" stroke-width="8"/><path d="M180 355 245 145m375 210-65-210M142 405h88m340 0h88" stroke="#151a1f" stroke-width="18" stroke-linecap="round"/>
+  <path d="M224 152h352v54H224z" fill="#151a1f"/><rect x="282" y="238" width="236" height="88" rx="10" fill="#242c33"/><g fill="#66ef96"><rect x="302" y="260" width="36" height="36" rx="5"/><rect x="348" y="260" width="36" height="36" rx="5"/><rect x="394" y="260" width="36" height="36" rx="5"/></g>
+  <text x="400" y="478" text-anchor="middle" font-family="Arial" font-size="24" font-weight="700" fill="#667085" letter-spacing="5">HYBRID STUDY</text>
+</svg>

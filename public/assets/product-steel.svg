@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fafc"/><stop offset="1" stop-color="#e7ecef"/></linearGradient><linearGradient id="s"><stop stop-color="#414b55"/><stop offset=".5" stop-color="#12171c"/><stop offset="1" stop-color="#303840"/></linearGradient></defs>
+  <rect width="800" height="520" fill="url(#b)"/><path d="M100 430h600" stroke="#cbd5df" stroke-width="3"/>
+  <path d="M170 405 238 112m392 293-68-293M151 404h106m286 0h106" fill="none" stroke="#151a1f" stroke-width="20" stroke-linecap="round"/>
+  <path d="m220 130 360 0 31 67-422 0zM190 254h420l31 70H159z" fill="url(#s)" stroke="#050709" stroke-width="9"/>
+  <g fill="#66ef96"><rect x="248" y="157" width="72" height="12" rx="6"/><rect x="220" y="282" width="90" height="12" rx="6"/></g>
+  <text x="400" y="478" text-anchor="middle" font-family="Arial" font-size="24" font-weight="700" fill="#667085" letter-spacing="5">STEELSERIES STUDY</text>
+</svg>

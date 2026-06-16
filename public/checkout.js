@@ -1,0 +1,88 @@
+const $ = selector => document.querySelector(selector);
+const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+const money = value => `$${Number(value).toFixed(2)}`;
+let cart = [];
+let products = [];
+
+function readCart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("patchreach_quote") || "[]");
+    return Array.isArray(saved) ? saved.map(item => typeof item === "string" ? { sku: item, quantity: 1 } : item) : [];
+  } catch {
+    return [];
+  }
+}
+
+function selectedItems() {
+  return cart.map(item => ({ ...item, product: products.find(product => product.sku === item.sku) })).filter(item => item.product);
+}
+
+function render() {
+  const items = selectedItems();
+  const blocked = items.filter(item => !item.product.direct_checkout || item.product.price_from == null);
+  const total = items.reduce((sum, item) => sum + Number(item.product.price_from || 0) * item.quantity, 0);
+  $("[data-checkout-items]").innerHTML = items.length ? items.map(item => `<article class="checkout-item"><img src="${esc(item.product.image_url || "/assets/product-steel.svg")}" alt="${esc(item.product.image_alt || item.product.name)}"><div><h3>${esc(item.product.name)}</h3><p>${esc(item.product.sku)} · x${item.quantity} · ${money(item.product.price_from)} each</p></div><b>${money(Number(item.product.price_from) * item.quantity)}</b></article>`).join("") : '<p class="muted">Your selection is empty. Return to the catalog to choose products.</p>';
+  $("[data-checkout-subtotal]").textContent = money(total);
+  $("[data-checkout-total]").textContent = `${money(total)} USD`;
+  if (blocked.length) throw new Error(`${blocked.map(item => item.product.name).join(", ")} must be quoted before payment.`);
+  if (!items.length) throw new Error("Your checkout list is empty.");
+}
+
+async function api(url, options = {}) {
+  const response = await fetch(url, options);
+  const contentType = response.headers.get("content-type") || "";
+  const body = contentType.includes("application/json")
+    ? await response.json().catch(() => ({}))
+    : { error: await response.text() };
+  if (!response.ok) throw new Error(body.error || "Request failed.");
+  return body;
+}
+
+function loadPayPal(config) {
+  if (!config.enabled || !config.clientId) {
+    $("[data-payment-status]").textContent = "PayPal Sandbox is not configured. Add the PayPal credentials in .env to enable payment.";
+    return;
+  }
+  const script = document.createElement("script");
+  script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=${encodeURIComponent(config.currency)}&intent=capture&components=buttons`;
+  script.onload = () => {
+    window.paypal.Buttons({
+      style: { layout: "vertical", shape: "rect", label: "paypal" },
+      createOrder: async () => {
+        const form = $("[data-checkout-form]");
+        if (!form.reportValidity()) throw new Error("Complete the delivery form.");
+        const customer = Object.fromEntries(new FormData(form));
+        const result = await api("/api/checkout/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...customer, items: cart })
+        });
+        return result.paypalOrderId;
+      },
+      onApprove: async data => {
+        $("[data-payment-status]").textContent = "Confirming your payment securely...";
+        const result = await api(`/api/checkout/orders/${encodeURIComponent(data.orderID)}/capture`, { method: "POST" });
+        localStorage.removeItem("patchreach_quote");
+        location.href = `/payment-success?order=${encodeURIComponent(result.orderNumber)}&token=${encodeURIComponent(result.publicToken)}`;
+      },
+      onCancel: () => { $("[data-payment-status]").textContent = "Payment was cancelled. Your product list is still saved."; },
+      onError: error => { $("[data-payment-status]").textContent = error.message || "PayPal could not complete the payment."; }
+    }).render("[data-paypal-buttons]");
+  };
+  script.onerror = () => { $("[data-payment-status]").textContent = "The PayPal checkout controls could not be loaded."; };
+  document.head.append(script);
+}
+
+async function initialize() {
+  cart = readCart();
+  try {
+    const [catalog, config] = await Promise.all([api("/api/products"), api("/api/checkout/config")]);
+    products = catalog.products;
+    render();
+    loadPayPal(config);
+  } catch (error) {
+    $("[data-payment-status]").textContent = error.message;
+    $("[data-paypal-buttons]").innerHTML = '<a href="/#compare">Return to the product list</a>';
+  }
+}
+initialize();

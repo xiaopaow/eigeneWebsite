@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <rect width="800" height="520" fill="#edf1f4"/><path d="M100 430h600" stroke="#cbd5df" stroke-width="3"/>
+  <path d="M190 170h420v90H190z" fill="#20272e" stroke="#080a0c" stroke-width="9"/><g fill="none" stroke="#66ef96" stroke-width="8"><path d="M240 205h95v28h-95zm225 0h95v28h-95z"/><path d="M280 260v105q0 40 40 40h60m140-145v75q0 30-30 30h-70"/></g>
+  <text x="400" y="478" text-anchor="middle" font-family="Arial" font-size="24" font-weight="700" fill="#667085" letter-spacing="5">ACCESSORY STUDY</text>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fafc"/><stop offset="1" stop-color="#e9eef2"/></linearGradient><linearGradient id="w"><stop stop-color="#d8a36f"/><stop offset=".5" stop-color="#9a6038"/><stop offset="1" stop-color="#6d4027"/></linearGradient></defs>
+  <rect width="800" height="520" fill="url(#b)"/><path d="M110 430h580" stroke="#cbd5df" stroke-width="3"/>
+  <path d="M172 390 236 130h56l-34 260zm456 0-64-260h-56l34 260z" fill="url(#w)" stroke="#4a2b1e" stroke-width="8"/>
+  <path d="m238 155 324 0 34 62-392 0z" fill="#14191e" stroke="#050709" stroke-width="9"/>
+  <path d="m210 260 380 0 31 68-442 0z" fill="#222a31" stroke="#050709" stroke-width="9"/>
+  <g fill="#66ef96"><circle cx="266" cy="187" r="8"/><circle cx="299" cy="187" r="8"/><circle cx="251" cy="294" r="8"/><circle cx="284" cy="294" r="8"/></g>
+  <text x="400" y="478" text-anchor="middle" font-family="Arial" font-size="24" font-weight="700" fill="#667085" letter-spacing="5">WOODLINE STUDY</text>
+</svg>

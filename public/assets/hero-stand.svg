@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680">
+  <defs><linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e2ae75"/><stop offset=".45" stop-color="#a86b3d"/><stop offset="1" stop-color="#684027"/></linearGradient><linearGradient id="deck"><stop stop-color="#30373e"/><stop offset=".5" stop-color="#111519"/><stop offset="1" stop-color="#272e34"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="22" stdDeviation="24" flood-opacity=".55"/></filter></defs>
+  <g filter="url(#shadow)" transform="translate(20 10)">
+    <path d="M150 565 280 90h90l-62 470zM840 565 710 90h-90l62 470z" fill="url(#wood)" stroke="#482b1c" stroke-width="12"/>
+    <path d="m283 115 430 0 85 126-600 0z" fill="url(#deck)" stroke="#050708" stroke-width="13"/>
+    <path d="m224 290 552 0 73 144-698 0z" fill="url(#deck)" stroke="#050708" stroke-width="13"/>
+    <path d="M176 465h648l25 74H151z" fill="url(#wood)" stroke="#482b1c" stroke-width="12"/>
+    <g fill="#080a0c"><rect x="302" y="144" width="88" height="40" rx="8"/><rect x="410" y="144" width="88" height="40" rx="8"/><rect x="518" y="144" width="88" height="40" rx="8"/><rect x="626" y="144" width="52" height="40" rx="8"/><rect x="260" y="330" width="114" height="54" rx="9"/><rect x="394" y="330" width="114" height="54" rx="9"/><rect x="528" y="330" width="114" height="54" rx="9"/><rect x="662" y="330" width="68" height="54" rx="9"/></g>
+    <g fill="#67f397"><circle cx="329" cy="207" r="9"/><circle cx="357" cy="207" r="9"/><circle cx="291" cy="406" r="9"/><circle cx="321" cy="406" r="9"/></g>
+  </g>
+</svg>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PatchReach | Synth stands by fit, not guesswork</title>
+  <meta name="description" content="Search desktop synth stands by gear, technical fit, material, tier count, and footprint. Compare products and request an exact-fit quote.">
+  <meta property="og:title" content="PatchReach Precision Catalog">
+  <meta property="og:description" content="Desktop synth stands engineered around your gear and workflow.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/assets/hero-gator.png">
+  <meta name="theme-color" content="#07090b">
+  <link rel="icon" href="/assets/favicon.svg">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap nav">
+      <a class="brand" href="#top" aria-label="PatchReach home"><span class="brand-mark">PR</span><span>PATCHREACH</span></a>
+      <button class="menu-btn" type="button" aria-label="Open menu" data-menu-toggle>Menu</button>
+      <nav class="nav-links" data-nav-links aria-label="Primary navigation">
+        <a href="#products">Products</a><a href="#finder">Finder</a>
+        <a href="#compare">Compare <span class="count" data-quote-count>0</span></a><a href="#request">Request</a>
+      </nav>
+      <div class="nav-actions"><button class="icon-btn" type="button" aria-label="Focus product search" data-focus-search>⌕</button><a class="btn primary" href="#finder">Find my stand</a></div>
+    </div>
+    <div class="variant-strip">Precision catalog · exact-fit inquiries</div>
+  </header>
+
+  <main>
+    <section class="catalog-hero" id="top">
+      <div class="wrap catalog-hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Precision catalog</p>
+          <h1>Synth stands by fit, not guesswork.</h1>
+          <p class="lead">Search your gear, filter technical specs, compare matches, and request an exact fit in one flow.</p>
+          <div class="metric-row"><span><b data-product-metric>12</b> launch products</span><span><b>3</b> stand systems</span><span><b>1</b> exact-fit workflow</span></div>
+          <a class="btn primary hero-cta" href="#finder">Configure your fit <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="hero-art">
+          <div class="hero-grid-lines"></div>
+          <img class="hero-product-photo" src="/assets/hero-gator.png" alt="Maple and metal desktop synthesizer workstation reference">
+          <span class="hero-label label-one">Cable clearance</span>
+          <span class="hero-label label-two">Adjustable tiers</span>
+          <span class="hero-label label-three">Studio-ready footprint</span>
+        </div>
+      </div>
+      <div class="wrap catalog-search" id="finder">
+        <label class="search-field"><span aria-hidden="true">⌕</span><input data-search type="search" placeholder="Search your gear, e.g. Digitakt or SP-404"></label>
+        <select data-material aria-label="Collection"><option>All</option><option>SteelSeries</option><option>Woodline</option><option>Hybrid</option><option>Accessories</option></select>
+        <select data-tier aria-label="Tier count"><option>All</option><option value="1">1-tier</option><option value="2">2-tier</option><option value="3">3-tier</option><option value="4">4+ tier</option></select>
+        <select data-footprint aria-label="Footprint"><option>All</option><option>Compact</option><option>Medium</option><option>Large</option></select>
+      </div>
+    </section>
+
+    <section class="catalog-command" id="products">
+      <div class="wrap catalog-layout">
+        <aside class="filter-rail" aria-label="Product filters">
+          <div class="rail-head"><b>Filters</b><button type="button" data-clear-filters>Clear all</button></div>
+          <fieldset class="filter-group"><legend>Material system</legend><label><input type="checkbox" data-check-filter="collection" value="Woodline"> Woodline</label><label><input type="checkbox" data-check-filter="collection" value="SteelSeries"> SteelSeries</label><label><input type="checkbox" data-check-filter="collection" value="Hybrid"> Hybrid</label><label><input type="checkbox" data-check-filter="collection" value="Accessories"> Accessories</label></fieldset>
+          <fieldset class="filter-group"><legend>Tier</legend><label><input type="checkbox" data-check-filter="tier_count" value="1"> 1 tier</label><label><input type="checkbox" data-check-filter="tier_count" value="2"> 2 tiers</label><label><input type="checkbox" data-check-filter="tier_count" value="3"> 3 tiers</label><label><input type="checkbox" data-check-filter="tier_count" value="4"> 4+ tiers</label></fieldset>
+          <fieldset class="filter-group"><legend>Footprint</legend><label><input type="checkbox" data-check-filter="footprint" value="Compact"> Compact</label><label><input type="checkbox" data-check-filter="footprint" value="Medium"> Medium</label><label><input type="checkbox" data-check-filter="footprint" value="Large"> Large</label></fieldset>
+        </aside>
+
+        <div class="catalog-list-wrap">
+          <div class="list-toolbar"><span><b data-result-count>0</b> results</span><select data-sort aria-label="Sort products"><option value="recommended">Recommended</option><option value="price-low">Price low to high</option><option value="price-high">Price high to low</option></select></div>
+          <div class="product-list" data-product-list><div class="loading-state">Loading the precision catalog...</div></div>
+        </div>
+
+        <aside class="compare-panel" id="compare">
+          <div class="rail-head">
+            <b>Compare</b>
+            <div class="compare-head-actions">
+              <button class="clear-quote-button" type="button" data-clear-quote aria-label="Clear comparison" title="Clear comparison" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg>
+              </button>
+              <span class="count" data-quote-count>0</span>
+            </div>
+          </div>
+          <div class="clear-quote-confirm" data-clear-quote-confirm hidden>
+            <span data-clear-quote-message>Clear all selected products?</span>
+            <div><button type="button" data-cancel-clear>Cancel</button><button class="danger" type="button" data-confirm-clear>Clear all</button></div>
+          </div>
+          <div class="quote-items" data-quote-items><p class="muted">Select products to build a quote.</p></div>
+          <div class="quote-total"><span>Estimated from</span><b data-quote-total>$0</b></div>
+          <a class="btn primary block" href="#request">Request quote <span aria-hidden="true">→</span></a>
+          <button class="btn checkout-btn block" type="button" data-checkout disabled>Proceed to checkout <span aria-hidden="true">→</span></button>
+          <p class="checkout-note" data-checkout-note></p>
+          <ul class="trust-list"><li>✓ Exact-fit review before production</li><li>✓ Material and finish confirmation</li><li>✓ Shipping quoted by destination</li><li>✓ Inquiry history saved securely</li></ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section request-section" id="request">
+      <div class="wrap request-grid">
+        <div>
+          <p class="eyebrow">Fit guarantee</p><h2>Request exact fit</h2>
+          <p>Add your gear list and desk constraints. We will confirm compatibility, material, production timing, and shipping in a personal quote.</p>
+          <div class="guarantee-box" id="proof"><b>Your request is saved even if email delivery is interrupted.</b><span>Every submission appears in the private admin dashboard for follow-up.</span></div>
+        </div>
+        <form class="request-form" data-request-form>
+          <label>Name<input name="name" required maxlength="120" autocomplete="name" placeholder="Your name"></label>
+          <label>Email<input type="email" name="email" required maxlength="254" autocomplete="email" placeholder="studio@example.com"></label>
+          <label>Company / studio<input name="company" maxlength="160" autocomplete="organization" placeholder="Optional"></label>
+          <label>Country<input name="country" maxlength="120" autocomplete="country-name" placeholder="Shipping destination"></label>
+          <label class="wide">Gear list<textarea name="gear" required maxlength="4000" placeholder="Moog Subsequent 37, Elektron Digitakt, SP-404"></textarea></label>
+          <label class="wide">Notes<textarea name="notes" maxlength="4000" placeholder="Desk width, preferred material, cable space, finish"></textarea></label>
+          <label class="honeypot" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+          <div class="selected-summary wide" data-form-products>No products selected. You can still request an exact recommendation.</div>
+          <button class="btn primary block wide" type="submit">Send fit request <span aria-hidden="true">→</span></button>
+          <p class="form-status wide" data-form-status role="status"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="wrap footer-grid"><div><a class="brand footer-brand" href="#top"><span class="brand-mark">PR</span><span>PATCHREACH</span></a><p>Synth stands by fit, not guesswork.</p></div><div><b>Catalog</b><a href="#products">All products</a><a href="#finder">Fit finder</a><a href="#compare">Compare</a></div><div><b>Support</b><a href="#request">Request exact fit</a><a href="#proof">Fit guarantee</a><a href="/admin">Admin</a></div><div><b>Contact</b><span>sales@example.com</span><small>Replace this address before launch.</small></div></div></footer>
+  <script src="/app.js" defer></script>
+</body>
+</html>
