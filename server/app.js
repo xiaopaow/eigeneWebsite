@@ -91,11 +91,17 @@ export function createApp({ pool, mailer, paypal = createPayPalService() }) {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        imgSrc: ["'self'", "data:", "blob:"],
+        imgSrc: ["'self'", "data:", "blob:", "https://www.paypalobjects.com"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'", "https://www.paypal.com", "https://www.paypalobjects.com"],
-        connectSrc: ["'self'", "https://www.paypal.com", "https://api-m.paypal.com", "https://api-m.sandbox.paypal.com"],
-        frameSrc: ["'self'", "https://www.paypal.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://www.paypal.com", "https://www.paypalobjects.com"],
+        connectSrc: [
+          "'self'",
+          "https://www.paypal.com",
+          "https://www.sandbox.paypal.com",
+          "https://api-m.paypal.com",
+          "https://api-m.sandbox.paypal.com"
+        ],
+        frameSrc: ["'self'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
         fontSrc: ["'self'"]
       }
     }
