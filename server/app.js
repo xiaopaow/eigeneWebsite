@@ -6,7 +6,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import multer from "multer";
-import { clearAdminCookie, issueAdminCookie, requireAdmin, verifyAdminCredentials } from "./auth.js";
+import { clearAdminCookie, issueAdminCookie, readAdminSession, requireAdmin, verifyAdminCredentials } from "./auth.js";
 import { sendInquiryEmail, sendPaymentEmails } from "./mailer.js";
 import { validateCheckout, validateInquiry, validateProduct } from "./validation.js";
 import { createPayPalService, paypalIsConfigured } from "./paypal.js";
@@ -44,6 +44,30 @@ const jsonRateLimitHandler = (_req, res) => {
 function orderNumber() {
   const date = new Date().toISOString().slice(0, 10).replaceAll("-", "");
   return `PR-${date}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+}
+
+function adminListQuery(query, allowedStatuses) {
+  const page = Number.parseInt(query.page, 10) || 1;
+  const pageSize = Number.parseInt(query.pageSize, 10) || 20;
+  const status = String(query.status || "all").toLowerCase();
+  const search = String(query.q || "").trim().slice(0, 200);
+  if (page < 1 || pageSize < 1 || pageSize > 100) {
+    throw Object.assign(new Error("Invalid pagination parameters."), { status: 400 });
+  }
+  if (status !== "all" && !allowedStatuses.includes(status)) {
+    throw Object.assign(new Error("Invalid status filter."), { status: 400 });
+  }
+  return { page, pageSize, status, search };
+}
+
+function paginationResult(requestedPage, pageSize, total) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const page = Math.min(requestedPage, totalPages);
+  return { page, pageSize, total, totalPages };
+}
+
+function publicBaseUrl(req) {
+  return String(process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
 }
 
 async function resolveItems(pool, items, requireDirectCheckout = false) {
@@ -235,14 +259,19 @@ export function createApp({ pool, mailer, paypal = createPayPalService() }) {
         const paypalOrder = await paypal.createOrder({
           amount: total.toFixed(2),
           currency,
-          orderNumber: number
+          orderNumber: number,
+          returnUrl: `${publicBaseUrl(req)}/paypal-return`,
+          cancelUrl: `${publicBaseUrl(req)}/checkout?paypal=cancelled`
         });
+        const approvalUrl = paypalOrder.links?.find(link => ["approve", "payer-action"].includes(link.rel))?.href;
+        if (!approvalUrl) throw new Error("PayPal approval link was not returned.");
         await pool.query(
           "UPDATE orders SET paypal_order_id = $1, updated_at = NOW() WHERE id = $2",
           [paypalOrder.id, internalId]
         );
         res.status(201).json({
           paypalOrderId: paypalOrder.id,
+          approvalUrl,
           orderNumber: number,
           publicToken
         });
@@ -353,7 +382,10 @@ export function createApp({ pool, mailer, paypal = createPayPalService() }) {
     clearAdminCookie(res);
     res.json({ message: "Signed out." });
   });
-  app.get("/api/admin/session", requireAdmin, (req, res) => res.json({ admin: req.admin.sub }));
+  app.get("/api/admin/session", (req, res) => {
+    const session = readAdminSession(req);
+    res.json(session ? { authenticated: true, admin: session.sub } : { authenticated: false });
+  });
 
   app.get("/api/admin/products", requireAdmin, async (_req, res, next) => {
     try {
@@ -415,27 +447,111 @@ export function createApp({ pool, mailer, paypal = createPayPalService() }) {
     res.status(201).json({ url: `/uploads/${req.file.filename}` });
   });
 
-  app.get("/api/admin/inquiries", requireAdmin, async (_req, res, next) => {
+  app.get("/api/admin/inquiries", requireAdmin, async (req, res, next) => {
     try {
-      const { rows } = await pool.query("SELECT * FROM inquiries ORDER BY created_at DESC LIMIT 500");
-      res.json({ inquiries: rows });
+      const options = adminListQuery(req.query, ["new", "contacted", "closed", "spam"]);
+      const params = [];
+      const where = [];
+      if (options.status !== "all") {
+        params.push(options.status);
+        where.push(`status = $${params.length}`);
+      }
+      if (options.search) {
+        params.push(`%${options.search}%`);
+        const token = `$${params.length}`;
+        where.push(`(id::text ILIKE ${token} OR name ILIKE ${token} OR email ILIKE ${token}
+          OR company ILIKE ${token} OR country ILIKE ${token} OR gear ILIKE ${token}
+          OR notes ILIKE ${token} OR product_skus::text ILIKE ${token})`);
+      }
+      const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+      const [countResult, summaryResult] = await Promise.all([
+        pool.query(`SELECT COUNT(*)::int AS total FROM inquiries ${whereSql}`, params),
+        pool.query(`SELECT
+          (COUNT(*) FILTER (WHERE status = 'new'))::int AS new_count,
+          (COUNT(*) FILTER (WHERE status = 'contacted'))::int AS contacted_count,
+          (COUNT(*) FILTER (WHERE status = 'closed'))::int AS closed_count,
+          (COUNT(*) FILTER (WHERE email_sent))::int AS emailed_count
+          FROM inquiries`)
+      ]);
+      const total = Number(countResult.rows[0]?.total || 0);
+      const pagination = paginationResult(options.page, options.pageSize, total);
+      const listParams = [...params, pagination.pageSize, (pagination.page - 1) * pagination.pageSize];
+      const { rows } = await pool.query(
+        `SELECT * FROM inquiries ${whereSql} ORDER BY created_at DESC
+         LIMIT $${listParams.length - 1} OFFSET $${listParams.length}`,
+        listParams
+      );
+      const summary = summaryResult.rows[0] || {};
+      res.json({
+        inquiries: rows,
+        pagination,
+        summary: {
+          newCount: Number(summary.new_count || 0),
+          contactedCount: Number(summary.contacted_count || 0),
+          closedCount: Number(summary.closed_count || 0),
+          emailedCount: Number(summary.emailed_count || 0)
+        }
+      });
     } catch (error) { next(error); }
   });
 
-  app.get("/api/admin/orders", requireAdmin, async (_req, res, next) => {
+  app.get("/api/admin/orders", requireAdmin, async (req, res, next) => {
     try {
+      const options = adminListQuery(req.query, ["pending", "approved", "paid", "failed", "refunded", "disputed"]);
+      const params = [];
+      const where = [];
+      if (options.status !== "all") {
+        params.push(options.status);
+        where.push(`o.status = $${params.length}`);
+      }
+      if (options.search) {
+        params.push(`%${options.search}%`);
+        const token = `$${params.length}`;
+        where.push(`(o.order_number ILIKE ${token} OR o.name ILIKE ${token} OR o.email ILIKE ${token}
+          OR o.phone ILIKE ${token} OR o.country ILIKE ${token} OR o.city ILIKE ${token}
+          OR o.region ILIKE ${token} OR o.postal_code ILIKE ${token}
+          OR o.paypal_order_id ILIKE ${token} OR o.paypal_capture_id ILIKE ${token}
+          OR o.payer_email ILIKE ${token} OR EXISTS (
+            SELECT 1 FROM order_items oi_search WHERE oi_search.order_id = o.id
+            AND (oi_search.sku ILIKE ${token} OR oi_search.name ILIKE ${token})
+          ))`);
+      }
+      const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+      const [countResult, summaryResult] = await Promise.all([
+        pool.query(`SELECT COUNT(*)::int AS total FROM orders o ${whereSql}`, params),
+        pool.query(`SELECT
+          COALESCE(SUM(total) FILTER (WHERE status = 'paid'), 0) AS paid_total,
+          (COUNT(*) FILTER (WHERE status = 'paid'))::int AS paid_count,
+          (COUNT(*) FILTER (WHERE status IN ('pending', 'approved')))::int AS pending_count,
+          MAX(paid_at) FILTER (WHERE status = 'paid') AS latest_paid
+          FROM orders`)
+      ]);
+      const total = Number(countResult.rows[0]?.total || 0);
+      const pagination = paginationResult(options.page, options.pageSize, total);
+      const listParams = [...params, pagination.pageSize, (pagination.page - 1) * pagination.pageSize];
       const { rows } = await pool.query(`
         SELECT o.*,
           COALESCE((
             SELECT json_agg(json_build_object(
-              'sku', oi.sku, 'name', oi.name, 'quantity', oi.quantity,
+              'sku', oi.sku, 'name', oi.name, 'image_url', oi.image_url, 'quantity', oi.quantity,
               'unit_price', oi.unit_price, 'line_total', oi.line_total
             ) ORDER BY oi.id)
             FROM order_items oi WHERE oi.order_id = o.id
           ), '[]'::json) AS items
-        FROM orders o ORDER BY o.created_at DESC LIMIT 500
-      `);
-      res.json({ orders: rows });
+        FROM orders o ${whereSql} ORDER BY o.created_at DESC
+        LIMIT $${listParams.length - 1} OFFSET $${listParams.length}
+      `, listParams);
+      const summary = summaryResult.rows[0] || {};
+      res.json({
+        orders: rows,
+        pagination,
+        summary: {
+          paidTotal: Number(summary.paid_total || 0),
+          paidCount: Number(summary.paid_count || 0),
+          pendingCount: Number(summary.pending_count || 0),
+          latestPaid: summary.latest_paid || null
+        }
+      });
     } catch (error) { next(error); }
   });
 

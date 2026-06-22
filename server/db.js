@@ -111,8 +111,12 @@ export async function initializeDatabase(pool) {
       ON products(status, sort_order, created_at DESC);
     CREATE INDEX IF NOT EXISTS inquiries_created_idx
       ON inquiries(created_at DESC);
+    CREATE INDEX IF NOT EXISTS inquiries_status_created_idx
+      ON inquiries(status, created_at DESC);
     CREATE INDEX IF NOT EXISTS orders_created_idx
       ON orders(created_at DESC);
+    CREATE INDEX IF NOT EXISTS orders_status_created_idx
+      ON orders(status, created_at DESC);
     CREATE INDEX IF NOT EXISTS order_items_order_idx
       ON order_items(order_id);
 

@@ -42,22 +42,27 @@ Open:
 - Admin dashboard: `http://localhost/admin`
 - Health check: `http://localhost/api/health`
 
+For a first production deployment, follow [DEPLOYMENT.zh-CN.md](DEPLOYMENT.zh-CN.md). It covers the VPS, Cloudflare Tunnel, clean catalog migration, R2 backups, Sandbox verification, and the controlled PayPal Live switch.
+
 The seed command is idempotent. It creates or updates the initial example products without deleting products added through the admin.
 
 ## Ubuntu server deployment
 
-1. Point the domain's `A` record to the server IP.
-2. Install Docker Engine and the Docker Compose plugin.
-3. Upload this project and create `.env` from `.env.example`.
-4. Generate long random values for `POSTGRES_PASSWORD`, `JWT_SECRET`, and `ADMIN_PASSWORD`.
-5. Run `docker compose up -d --build`.
-6. Run `docker compose exec app node server/seed.js` once.
-7. Put HTTPS in front of port 80 using your preferred provider. A simple option is Cloudflare proxy with Full/Strict TLS; another is a host-level Certbot Nginx configuration.
+1. Install Docker Engine and the Docker Compose plugin.
+2. Clone this repository and create `.env` from `.env.example`.
+3. Generate long random values for `POSTGRES_PASSWORD`, `JWT_SECRET`, and `ADMIN_PASSWORD`.
+4. Configure a Cloudflare Tunnel with `http://nginx:80` as its origin.
+5. Run `docker compose --profile tunnel up -d --build`.
+6. Run `scripts/healthcheck.sh`, then migrate the reviewed catalog or add products through `/admin`.
+
+The production host binds Nginx to `127.0.0.1:8080` through `HTTP_BIND`; PostgreSQL is never published. Local development continues to default to port 80.
 
 Back up both named volumes:
 
 - `postgres_data`: products and inquiries
 - `product_uploads`: uploaded product images
+
+`scripts/backup.sh` creates database and upload archives and can synchronize them to a private Cloudflare R2 bucket. `scripts/export-catalog.sh` and `scripts/import-catalog.sh` move products and uploads without copying Sandbox orders or inquiry data.
 
 ## Required launch edits
 
@@ -66,6 +71,8 @@ Back up both named volumes:
 - Change every default secret.
 - Replace concept images with owned product photography as it becomes available.
 - Review dimensions and `From` prices before publishing.
+- Replace every `REPLACE_BEFORE_LAUNCH` marker in the public policy templates.
+- Run `scripts/preflight.sh` on the production host before public launch.
 
 ## PayPal checkout setup
 

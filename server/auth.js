@@ -30,13 +30,18 @@ export function clearAdminCookie(res) {
   res.clearCookie(COOKIE_NAME, { path: "/" });
 }
 
-export function requireAdmin(req, res, next) {
+export function readAdminSession(req) {
   try {
     const token = req.cookies[COOKIE_NAME];
-    if (!token) return res.status(401).json({ error: "Authentication required." });
-    req.admin = jwt.verify(token, process.env.JWT_SECRET);
-    next();
+    return token ? jwt.verify(token, process.env.JWT_SECRET) : null;
   } catch {
-    res.status(401).json({ error: "Your admin session has expired." });
+    return null;
   }
+}
+
+export function requireAdmin(req, res, next) {
+  const session = readAdminSession(req);
+  if (!session) return res.status(401).json({ error: "Authentication required or session expired." });
+  req.admin = session;
+  next();
 }

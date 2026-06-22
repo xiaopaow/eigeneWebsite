@@ -1,6 +1,10 @@
 node_modules
 .git
 .env
+.idea
+.playwright-cli
 uploads
+backups
+migration
 output
 npm-debug.log*

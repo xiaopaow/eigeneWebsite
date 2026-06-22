@@ -43,7 +43,7 @@ export function createPayPalService(fetchImpl = fetch) {
 
   return {
     configured: paypalIsConfigured,
-    async createOrder({ amount, currency, orderNumber }) {
+    async createOrder({ amount, currency, orderNumber, returnUrl, cancelUrl }) {
       return paypalRequest("/v2/checkout/orders", {
         method: "POST",
         requestId: `create-${orderNumber}`,
@@ -54,7 +54,19 @@ export function createPayPalService(fetchImpl = fetch) {
             custom_id: orderNumber,
             description: `PatchReach order ${orderNumber}`,
             amount: { currency_code: currency, value: amount }
-          }]
+          }],
+          payment_source: {
+            paypal: {
+              experience_context: {
+                payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+                brand_name: "PatchReach",
+                shipping_preference: "NO_SHIPPING",
+                user_action: "PAY_NOW",
+                return_url: returnUrl,
+                cancel_url: cancelUrl
+              }
+            }
+          }
         })
       });
     },

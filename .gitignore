@@ -1,8 +1,11 @@
 node_modules/
 .env
+.idea/
 .playwright-cli/
 uploads/*
 !uploads/.gitkeep
+backups/
+migration/
 coverage/
 output/
 npm-debug.log*

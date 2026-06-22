@@ -39,38 +39,44 @@ async function api(url, options = {}) {
 }
 
 function loadPayPal(config) {
+  const form = $("[data-checkout-form]");
+  const container = $("[data-paypal-buttons]");
+  const status = $("[data-payment-status]");
   if (!config.enabled || !config.clientId) {
-    $("[data-payment-status]").textContent = "PayPal Sandbox is not configured. Add the PayPal credentials in .env to enable payment.";
+    status.textContent = "PayPal Sandbox is not configured. Add the PayPal credentials in .env to enable payment.";
     return;
   }
-  const script = document.createElement("script");
-  script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=${encodeURIComponent(config.currency)}&intent=capture&components=buttons`;
-  script.onload = () => {
-    window.paypal.Buttons({
-      style: { layout: "vertical", shape: "rect", label: "paypal" },
-      createOrder: async () => {
-        const form = $("[data-checkout-form]");
-        if (!form.reportValidity()) throw new Error("Complete the delivery form.");
-        const customer = Object.fromEntries(new FormData(form));
-        const result = await api("/api/checkout/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...customer, items: cart })
-        });
-        return result.paypalOrderId;
-      },
-      onApprove: async data => {
-        $("[data-payment-status]").textContent = "Confirming your payment securely...";
-        const result = await api(`/api/checkout/orders/${encodeURIComponent(data.orderID)}/capture`, { method: "POST" });
-        localStorage.removeItem("patchreach_quote");
-        location.href = `/payment-success?order=${encodeURIComponent(result.orderNumber)}&token=${encodeURIComponent(result.publicToken)}`;
-      },
-      onCancel: () => { $("[data-payment-status]").textContent = "Payment was cancelled. Your product list is still saved."; },
-      onError: error => { $("[data-payment-status]").textContent = error.message || "PayPal could not complete the payment."; }
-    }).render("[data-paypal-buttons]");
+  container.innerHTML = `<button type="button" class="paypal-redirect-button" disabled>
+    <span>Continue with <b>PayPal</b></span><small>Secure redirect checkout</small>
+  </button>`;
+  const button = container.querySelector("button");
+  const syncFormState = () => {
+    button.disabled = !form.checkValidity();
+    status.textContent = button.disabled ? "Complete the delivery form to enable PayPal." : "";
   };
-  script.onerror = () => { $("[data-payment-status]").textContent = "The PayPal checkout controls could not be loaded."; };
-  document.head.append(script);
+  form.addEventListener("input", syncFormState);
+  form.addEventListener("change", syncFormState);
+  button.addEventListener("click", async () => {
+    if (!form.reportValidity()) return syncFormState();
+    button.disabled = true;
+    status.textContent = "Connecting to PayPal securely...";
+    try {
+      const customer = Object.fromEntries(new FormData(form));
+      const result = await api("/api/checkout/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...customer, items: cart })
+      });
+      if (!/^https:\/\/(www\.)?(sandbox\.)?paypal\.com\//i.test(result.approvalUrl || "")) {
+        throw new Error("PayPal returned an invalid checkout link.");
+      }
+      location.assign(result.approvalUrl);
+    } catch (error) {
+      status.textContent = error.message || "PayPal could not start the payment.";
+      syncFormState();
+    }
+  });
+  syncFormState();
 }
 
 async function initialize() {
