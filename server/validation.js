@@ -79,6 +79,10 @@ export function validateProduct(body) {
     angle: String(body.angle || "").trim(),
     fit: String(body.fit || "").trim(),
     description: String(body.description || "").trim(),
+    detail_intro: String(body.detail_intro || "").trim(),
+    feature_list: normalizeFeatureList(body.feature_list),
+    spec_notes: String(body.spec_notes || "").trim(),
+    shipping_note: String(body.shipping_note || "").trim(),
     tag: String(body.tag || "").trim(),
     image_url: body.image_url ? String(body.image_url).trim() : null,
     image_alt: String(body.image_alt || "").trim(),
@@ -97,6 +101,8 @@ export function validateProduct(body) {
   if (product.name.length < 2 || product.name.length > 160) return { error: "Product name is required." };
   if (!product.collection || !product.material) return { error: "Collection and material are required." };
   if (!Number.isInteger(product.tier_count) || product.tier_count < 1 || product.tier_count > 12) return { error: "Tier count must be between 1 and 12." };
+  if (product.detail_intro.length > 5000 || product.spec_notes.length > 2500 || product.shipping_note.length > 2500) return { error: "Product detail text is too long." };
+  if (product.feature_list.length > 8 || product.feature_list.some(item => item.length > 180)) return { error: "Feature list can contain up to 8 short items." };
   if (!["draft", "published", "archived"].includes(product.status)) return { error: "Invalid product status." };
   if (product.price_from != null && (!Number.isFinite(product.price_from) || product.price_from < 0)) return { error: "Invalid price." };
   if (product.direct_checkout && product.price_from == null) return { error: "Direct checkout requires a fixed price." };
@@ -107,4 +113,14 @@ function nullableNumber(value) {
   if (value === "" || value == null) return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function normalizeFeatureList(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => String(item || "").trim()).filter(Boolean);
+  }
+  return String(value || "")
+    .split(/\r?\n/)
+    .map(item => item.replace(/^[-*]\s*/, "").trim())
+    .filter(Boolean);
 }

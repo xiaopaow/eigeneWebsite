@@ -55,8 +55,8 @@ function rowCard(product) {
   const checked = hasQuote(product.sku) ? "checked" : "";
   return `<article class="row-card">
     <input type="checkbox" data-row-quote="${esc(product.sku)}" ${checked} aria-label="Compare ${esc(product.name)}">
-    ${productImage(product)}
-    <div><span class="tag">${esc(product.sku)}</span><h3>${esc(product.name)}</h3><p>Fits ${esc(product.device)}</p><div class="tags"><span class="tag">${esc(product.tier_label)}</span><span class="tag">${esc(product.collection)}</span></div></div>
+    <a class="product-thumb-link" href="/products/${encodeURIComponent(product.sku)}" aria-label="View ${esc(product.name)} details">${productImage(product)}</a>
+    <div><a class="product-title-link" href="/products/${encodeURIComponent(product.sku)}"><span class="tag">${esc(product.sku)}</span><h3>${esc(product.name)}</h3></a><p>Fits ${esc(product.device)}</p><div class="tags"><span class="tag">${esc(product.tier_label)}</span><span class="tag">${esc(product.collection)}</span></div></div>
     <div class="row-specs"><span>Angle<br><b>${esc(product.angle || "Custom")}</b></span><span>Width<br><b>${esc(product.width_cm || "TBC")} cm</b></span><span>Depth<br><b>${esc(product.depth_cm || "TBC")} cm</b></span><span>Load<br><b>${esc(product.load_kg || "TBC")} kg</b></span></div>
     <div class="row-price"><small>From</small><br><b>${money(product.price_from)}</b><br><small>Final price by fit</small></div>
     <button class="btn" type="button" data-add-quote="${esc(product.sku)}">${checked ? "Selected" : "Add to quote"}</button>

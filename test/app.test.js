@@ -31,6 +31,30 @@ test("public product API only uses published query", async () => {
   assert.match(pool.calls[0].sql, /status = 'published'/);
 });
 
+test("public product detail API returns only published products", async () => {
+  const calls = [];
+  const pool = {
+    async query(sql, params = []) {
+      calls.push({ sql, params });
+      if (sql.includes("UPPER(sku) = UPPER($1)") && sql.includes("status = 'published'")) {
+        return { rows: [{ sku: "PR-W01", name: "Angle One", status: "published", feature_list: ["Compact fit"] }] };
+      }
+      return { rows: [] };
+    }
+  };
+  const response = await request(createApp({ pool, mailer: null })).get("/api/products/pr-w01");
+  assert.equal(response.status, 200);
+  assert.equal(response.body.product.sku, "PR-W01");
+  assert.deepEqual(calls[0].params, ["pr-w01"]);
+  assert.match(calls[0].sql, /status = 'published'/);
+});
+
+test("public product detail API returns 404 for missing product", async () => {
+  const pool = { async query() { return { rows: [] }; } };
+  const response = await request(createApp({ pool, mailer: null })).get("/api/products/NOPE");
+  assert.equal(response.status, 404);
+});
+
 test("inquiry is stored when SMTP is not configured", async () => {
   const pool = fakePool();
   const response = await request(createApp({ pool, mailer: null }))
@@ -84,6 +108,33 @@ test("admin can log in and receive a protected session", async () => {
   const session = await agent.get("/api/admin/session");
   assert.equal(session.status, 200);
   assert.equal(session.body.admin, "admin@example.com");
+});
+
+test("admin product save serializes detail feature list for jsonb", async () => {
+  const calls = [];
+  const pool = {
+    async query(sql, params = []) {
+      calls.push({ sql, params });
+      if (sql.includes("INSERT INTO products")) return { rows: [{ id: 1, sku: "PR-W01" }] };
+      return { rows: [], rowCount: 1 };
+    }
+  };
+  const agent = request.agent(createApp({ pool, mailer: null }));
+  await agent.post("/api/admin/login").send({ email: "admin@example.com", password: "strong-test-password" });
+  const response = await agent.post("/api/admin/products").send({
+    sku: "PR-W01",
+    name: "Angle One",
+    collection: "Woodline",
+    material: "Wood",
+    tier_count: 1,
+    tier_label: "1-tier",
+    device: "Volca",
+    feature_list: "Compact footprint\nCable clearance",
+    status: "published"
+  });
+  assert.equal(response.status, 201);
+  const insert = calls.find(call => call.sql.includes("INSERT INTO products"));
+  assert.ok(insert.params.includes(JSON.stringify(["Compact footprint", "Cable clearance"])));
 });
 
 test("admin inquiries use server pagination and global summary", async () => {

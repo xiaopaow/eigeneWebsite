@@ -106,6 +106,7 @@ function editProduct(id) {
   Object.entries(product).forEach(([key, value]) => {
     if (!form.elements[key]) return;
     if (form.elements[key].type === "checkbox") form.elements[key].checked = Boolean(value);
+    else if (key === "feature_list") form.elements[key].value = Array.isArray(value) ? value.join("\n") : value || "";
     else form.elements[key].value = value ?? "";
   });
   $("[data-editor-mode]").textContent = product.sku;

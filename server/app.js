@@ -32,7 +32,8 @@ const upload = multer({
 
 const productColumns = [
   "sku", "name", "collection", "material", "tier_count", "tier_label", "device", "angle",
-  "fit", "description", "tag", "image_url", "image_alt", "price_from", "footprint",
+  "fit", "description", "detail_intro", "feature_list", "spec_notes", "shipping_note",
+  "tag", "image_url", "image_alt", "price_from", "footprint",
   "width_cm", "depth_cm", "height_cm", "cable_gap_cm", "load_kg", "status", "sort_order",
   "direct_checkout"
 ];
@@ -68,6 +69,29 @@ function paginationResult(requestedPage, pageSize, total) {
 
 function publicBaseUrl(req) {
   return String(process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
+}
+
+function htmlEscape(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
+}
+
+function safeJson(value) {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
+async function loadPublicProduct(pool, sku) {
+  const { rows } = await pool.query(
+    `SELECT ${productColumns.join(", ")}, created_at, updated_at
+     FROM products WHERE UPPER(sku) = UPPER($1) AND status = 'published'`,
+    [sku]
+  );
+  return rows[0] || null;
+}
+
+function productValues(product) {
+  return productColumns.map(key => key === "feature_list" ? JSON.stringify(product[key] || []) : product[key]);
 }
 
 async function resolveItems(pool, items, requireDirectCheckout = false) {
@@ -159,6 +183,14 @@ export function createApp({ pool, mailer, paypal = createPayPalService() }) {
         params
       );
       res.json({ products: rows });
+    } catch (error) { next(error); }
+  });
+
+  app.get("/api/products/:sku", async (req, res, next) => {
+    try {
+      const product = await loadPublicProduct(pool, req.params.sku);
+      if (!product) return res.status(404).json({ error: "Product not found." });
+      res.json({ product });
     } catch (error) { next(error); }
   });
 
@@ -401,7 +433,7 @@ export function createApp({ pool, mailer, paypal = createPayPalService() }) {
     const parsed = validateProduct(req.body);
     if (parsed.error) return res.status(400).json({ error: parsed.error });
     try {
-      const values = productColumns.map(key => parsed.value[key]);
+      const values = productValues(parsed.value);
       const placeholders = values.map((_, index) => `$${index + 1}`).join(",");
       const { rows } = await pool.query(
         `INSERT INTO products (${productColumns.join(",")}) VALUES (${placeholders}) RETURNING *`,
@@ -418,7 +450,7 @@ export function createApp({ pool, mailer, paypal = createPayPalService() }) {
     const parsed = validateProduct(req.body);
     if (parsed.error) return res.status(400).json({ error: parsed.error });
     try {
-      const values = productColumns.map(key => parsed.value[key]);
+      const values = productValues(parsed.value);
       const assignments = productColumns.map((key, index) => `${key} = $${index + 1}`).join(",");
       values.push(req.params.id);
       const { rows } = await pool.query(
@@ -570,6 +602,23 @@ export function createApp({ pool, mailer, paypal = createPayPalService() }) {
   });
 
   app.use(express.static(path.join(root, "public"), { extensions: ["html"] }));
+  app.get("/products/:sku", async (req, res, next) => {
+    try {
+      const product = await loadPublicProduct(pool, req.params.sku);
+      if (!product) return res.status(404).sendFile(path.join(root, "public", "product-not-found.html"));
+      const template = await fs.promises.readFile(path.join(root, "public", "product.html"), "utf8");
+      const description = product.detail_intro || product.description || product.fit || "PatchReach desktop synth stand details and fit specifications.";
+      const url = `${publicBaseUrl(req)}/products/${encodeURIComponent(product.sku)}`;
+      const imageUrl = new URL(product.image_url || "/assets/product-steel.svg", publicBaseUrl(req)).href;
+      res.type("html").send(template
+        .replaceAll("__PRODUCT_TITLE__", htmlEscape(`${product.name} | PatchReach`))
+        .replaceAll("__PRODUCT_DESCRIPTION__", htmlEscape(description.slice(0, 180)))
+        .replaceAll("__PRODUCT_IMAGE__", htmlEscape(imageUrl))
+        .replaceAll("__PRODUCT_URL__", htmlEscape(url))
+        .replace("__PRODUCT_JSON__", safeJson(product)));
+    } catch (error) { next(error); }
+  });
+
   app.get("/admin", (_req, res) => res.sendFile(path.join(root, "public", "admin.html")));
   app.use((error, _req, res, _next) => {
     if (!error.status || error.status >= 500) console.error(error);

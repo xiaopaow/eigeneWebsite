@@ -24,6 +24,10 @@ export async function initializeDatabase(pool) {
       angle VARCHAR(160) NOT NULL DEFAULT '',
       fit TEXT NOT NULL DEFAULT '',
       description TEXT NOT NULL DEFAULT '',
+      detail_intro TEXT NOT NULL DEFAULT '',
+      feature_list JSONB NOT NULL DEFAULT '[]'::jsonb,
+      spec_notes TEXT NOT NULL DEFAULT '',
+      shipping_note TEXT NOT NULL DEFAULT '',
       tag VARCHAR(100) NOT NULL DEFAULT '',
       image_url TEXT,
       image_alt VARCHAR(240) NOT NULL DEFAULT '',
@@ -58,6 +62,10 @@ export async function initializeDatabase(pool) {
     );
 
     ALTER TABLE products ADD COLUMN IF NOT EXISTS direct_checkout BOOLEAN NOT NULL DEFAULT FALSE;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS detail_intro TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS feature_list JSONB NOT NULL DEFAULT '[]'::jsonb;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS spec_notes TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS shipping_note TEXT NOT NULL DEFAULT '';
     ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS quote_items JSONB NOT NULL DEFAULT '[]'::jsonb;
 
     CREATE TABLE IF NOT EXISTS orders (
