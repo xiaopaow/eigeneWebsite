@@ -71,6 +71,10 @@ function publicBaseUrl(req) {
   return String(process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
 }
 
+function appUrlUsesHttps() {
+  return /^https:\/\//i.test(String(process.env.APP_URL || ""));
+}
+
 function htmlEscape(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -134,8 +138,10 @@ function captureDetails(capture) {
 
 export function createApp({ pool, mailer, paypal = createPayPalService() }) {
   const app = express();
+  const secureAppUrl = appUrlUsesHttps();
   app.set("trust proxy", 1);
   app.use(helmet({
+    strictTransportSecurity: secureAppUrl,
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
@@ -150,7 +156,8 @@ export function createApp({ pool, mailer, paypal = createPayPalService() }) {
           "https://api-m.sandbox.paypal.com"
         ],
         frameSrc: ["'self'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
-        fontSrc: ["'self'"]
+        fontSrc: ["'self'"],
+        upgradeInsecureRequests: secureAppUrl ? [] : null
       }
     }
   }));
